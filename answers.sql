@@ -1,3 +1,4 @@
+MODULE 0
 0.1. 
 SELECT population FROM world
   WHERE name = 'Germany'
@@ -10,6 +11,7 @@ SELECT name, population FROM world
 SELECT name, area FROM world
   WHERE area BETWEEN 200000 AND 250000
 ------------------------------- 
+MODULE 1
 1.1.
 SELECT name FROM world
   WHERE name LIKE 'Y%'
@@ -76,6 +78,7 @@ SELECT name, REPLACE(capital, name,'')
 FROM world
 WHERE capital LIKE concat(name,'_%')
 -------------------------------
+MODULE 2
 2.1.
 SELECT name, continent, population FROM world
 -------------------------------
@@ -144,6 +147,7 @@ WHERE name LIKE '%u%'
   and name LIKE '%e%'
   and name NOT LIKE '% %'
 -------------------------------
+MODULE 3
 3.1.
 SELECT yr, subject, winner
   FROM nobel
@@ -220,6 +224,7 @@ SELECT winner, subject
  WHERE yr=1984
  ORDER BY subject IN ('Physics','Chemistry'), subject, winner
 -------------------------------
+MODULE 4
 4.1.
 SELECT name
 FROM world
@@ -252,10 +257,363 @@ FROM world
 WHERE gdp > (SELECT MAX(gdp) FROM world WHERE continent = 'Europe')
 -------------------------------
 4.7.
+SELECT continent, name, area FROM world x
+  WHERE area >= ALL
+    (SELECT area FROM world y
+        WHERE y.continent=x.continent
+          AND area > 0)
 -------------------------------
 4.8.
+SELECT continent, name FROM world x
+  WHERE name <= ALL
+    (SELECT name FROM world y
+        WHERE y.continent=x.continent)
 -------------------------------
 4.9.
+SELECT name, continent, population FROM world x
+  WHERE 25000000 >= ALL
+    (SELECT population FROM world y
+       WHERE y.continent = x.continent)
 -------------------------------
 4.10.
+SELECT name, continent
+FROM world x
+  WHERE x.population/3 > ALL
+    (SELECT population FROM world y
+        WHERE y.continent = x.continent AND x.name != y.name)
+-------------------------------
+MODULE 5
+5.1.
+SELECT SUM(population)
+FROM world
+-------------------------------
+5.2.
+SELECT DISTINCT continent FROM world
+-------------------------------
+5.3.
+SELECT SUM(gdp) FROM world
+WHERE continent = 'Africa'
+-------------------------------
+5.4.
+SELECT COUNT(name) 
+FROM world
+WHERE area > 1000000
+-------------------------------
+5.5.
+SELECT SUM(population) 
+FROM world
+WHERE name IN ('Estonia', 'Latvia', 'Lithuania')
+-------------------------------
+5.6.
+SELECT continent, COUNT(name) 
+FROM world
+GROUP BY continent
+-------------------------------
+5.7.
+SELECT continent, COUNT(name) 
+FROM world
+WHERE population > 10000000
+GROUP BY continent
+-------------------------------
+5.8.
+SELECT continent
+FROM world
+GROUP BY continent
+HAVING SUM(population) > 100000000
+-------------------------------
+MODULE 6
+6.1.
+SELECT matchid, player FROM goal 
+WHERE teamid= 'GER'
+-------------------------------
+6.2.
+SELECT id,stadium,team1,team2
+  FROM game
+WHERE id = 1012
+-------------------------------
+6.3.
+SELECT player, teamid, stadium, mdate
+  FROM game JOIN goal ON (id=matchid)
+    WHERE teamid = 'GER'
+-------------------------------
+6.4.
+SELECT team1, team2, player
+FROM game
+INNER JOIN goal ON (id=matchid)
+WHERE player LIKE 'Mario%'
+-------------------------------
+6.5.
+SELECT player, teamid, coach, gtime
+  FROM goal
+INNER JOIN eteam ON teamid=id
+ WHERE gtime<=10
+-------------------------------
+6.6.
+SELECT mdate, teamname
+FROM game JOIN eteam
+ON (team1=eteam.id)
+WHERE coach = 'Fernando Santos'
+-------------------------------
+6.7.
+Select player 
+FROM goal 
+JOIN game ON (matchid = id) 
+WHERE stadium = 'National Stadium, Warsaw'
+-------------------------------
+6.8.
+SELECT DISTINCT player
+  FROM game JOIN goal ON matchid = id 
+    WHERE (team1='GER' OR team2='GER') AND teamid!='GER'
+-------------------------------
+6.9.
+SELECT teamname, COUNT(player)
+FROM goal 
+JOIN eteam ON id = teamid
+GROUP BY teamname
+-------------------------------
+6.10.
+SELECT stadium, COUNT(matchid) AS 'All goals'
+FROM game 
+JOIN goal ON matchid = id
+GROUP BY stadium
+-------------------------------
+6.11.
+SELECT DISTINCT matchid, mdate, COUNT(teamid)
+FROM game
+JOIN goal ON matchid = id
+WHERE team1 = 'POL' OR team2 = 'POL'
+GROUP BY matchid, mdate
+-------------------------------
+6.12.
+SELECT matchid, mdate, COUNT(player)
+FROM game
+JOIN goal ON matchid = id
+WHERE teamid = 'GER'
+GROUP BY matchid,mdate
+-------------------------------
+6.13.
+SELECT mdate,
+       team1,
+       SUM(CASE WHEN teamid = team1 THEN 1 ELSE 0 END) AS score1,
+       team2,
+       SUM(CASE WHEN teamid = team2 THEN 1 ELSE 0 END) AS score2 FROM
+    game LEFT JOIN goal ON (id = matchid)
+    GROUP BY mdate,team1,team2
+    ORDER BY mdate, matchid, team1, team2
+-------------------------------
+MODULE 7
+7.1.
+SELECT id, title
+ FROM movie
+ WHERE yr=1962
+-------------------------------
+7.2.
+SELECT yr
+FROM movie
+WHERE title = 'Citizen Kane'
+-------------------------------
+7.3.
+SELECT id, title, yr
+FROM movie
+WHERE title LIKE 'Star Trek%'
+ORDER BY yr
+-------------------------------
+7.4.
+SELECT id
+FROM actor
+WHERE name = 'Glenn Close'
+-------------------------------
+7.5.
+SELECT id 
+FROM movie
+WHERE title = 'Casablanca'
+-------------------------------
+7.6.
+SELECT name
+FROM actor
+INNER JOIN casting ON id = actorid
+WHERE movieid = 11768
+-------------------------------
+7.7.
+SELECT name
+FROM actor
+INNER JOIN casting ON id = actorid
+INNER JOIN movie ON movie.id = casting.movieid
+WHERE title = 'Alien'
+-------------------------------
+7.8.
+SELECT title
+FROM movie
+INNER JOIN casting ON movie.id = casting.movieid
+INNER JOIN actor ON casting.actorid = actor.id
+WHERE name = 'Harrison Ford'
+-------------------------------
+7.9.
+SELECT title
+FROM movie
+INNER JOIN casting ON movie.id = casting.movieid
+INNER JOIN actor ON casting.actorid = actor.id
+WHERE name = 'Harrison Ford' AND ord > 1
+-------------------------------
+7.10.
+SELECT title, name
+FROM movie
+INNER JOIN casting ON movie.id = casting.movieid
+INNER JOIN actor ON casting.actorid = actor.id
+WHERE yr = 1962 AND ord = 1
+-------------------------------
+7.11.
+SELECT yr, COUNT(title)
+FROM movie
+INNER JOIN casting ON movie.id = casting.movieid
+INNER JOIN actor ON actor.id = casting.actorid
+WHERE name = 'Rock Hudson'
+GROUP BY yr
+HAVING COUNT(title) > 2
+-------------------------------
+7.12.
+SELECT title, name
+FROM movie
+INNER JOIN casting ON movie.id = casting.movieid
+INNER JOIN actor on actor.id = casting.actorid
+WHERE movie.id IN (SELECT casting.movieid
+FROM casting
+WHERE casting.actorid = 179) AND ord = 1
+-------------------------------
+7.13.
+SELECT name 
+FROM actor 
+JOIN casting ON actor.id = actorid 
+WHERE ord = 1 
+GROUP BY name
+HAVING COUNT(movieid) >= 15
+-------------------------------
+7.14.
+SELECT title, COUNT(actorid)
+FROM movie
+JOIN casting ON movie.id = casting.movieid
+WHERE yr = 1978
+GROUP BY title
+ORDER BY COUNT(actorid) DESC, title
+-------------------------------
+7.15.
+SELECT DISTINCT name 
+FROM movie
+JOIN casting ON casting.movieid = movie.id
+JOIN actor ON casting.actorid = actor.id
+WHERE director = 'Art Garfunkel' OR movieid IN (SELECT movieid FROM casting WHERE actorid = 1112) AND name != 'Art Garfunkel'
+-------------------------------
+MODULE 8
+8.1.
+SELECT name
+FROM teacher 
+WHERE dept IS NULL
+-------------------------------
+8.2.
+SELECT teacher.name, dept.name
+ FROM teacher INNER JOIN dept
+           ON (teacher.dept=dept.id)
+-------------------------------
+8.3.
+SELECT DISTINCT teacher.name, dept.name
+ FROM teacher LEFT JOIN dept
+           ON teacher.dept = dept.id
+-------------------------------
+8.4.
+SELECT teacher.name, dept.name
+FROM teacher RIGHT join dept
+ON teacher.dept = dept.id
+-------------------------------
+8.5.
+SELECT name, COALESCE(mobile, '07986 444 2266')
+FROM teacher
+-------------------------------
+8.6.
+SELECT teacher.name, COALESCE(dept.name, 'None')
+FROM teacher
+LEFT JOIN dept
+ON teacher.dept = dept.id
+-------------------------------
+8.7.
+SELECT COUNT(name), COUNT(mobile)
+FROM teacher
+-------------------------------
+8.8.
+SELECT dept.name, COUNT(teacher.name)
+FROM dept
+LEFT JOIN teacher ON teacher.dept = dept.id
+GROUP BY dept.name
+-------------------------------
+8.9.
+SELECT name, CASE WHEN dept IN (1,2) THEN 'Sci'
+     ELSE 'Art'
+     END
+FROM teacher
+-------------------------------
+8.10.
+SELECT name, CASE WHEN dept IN (1,2) THEN 'Sci'
+     WHEN dept = 3 THEN 'Art'
+     ELSE 'None'
+     END
+FROM teacher
+-------------------------------
+MODULE 9
+9.1.
+SELECT COUNT(id)
+FROM stops
+-------------------------------
+9.2.
+SELECT id
+FROM stops
+WHERE name = 'Craiglockhart'
+-------------------------------
+9.3.
+SELECT id, name
+FROM stops
+JOIN route ON stops.id = route.stop
+WHERE company = 'LRT' AND num = '4'
+-------------------------------
+9.4.
+SELECT company, num, COUNT(*)
+FROM route WHERE stop=149 OR stop=53
+GROUP BY company, num
+HAVING COUNT(*) = 2
+-------------------------------
+9.5.
+SELECT a.company, a.num, a.stop, b.stop
+FROM route a JOIN route b ON
+  (a.company=b.company AND a.num=b.num)
+WHERE a.stop=53 AND b.stop = 149
+-------------------------------
+9.6.
+SELECT a.company, a.num, stopa.name, stopb.name
+FROM route a JOIN route b ON
+  (a.company=b.company AND a.num=b.num)
+  JOIN stops stopa ON (a.stop=stopa.id)
+  JOIN stops stopb ON (b.stop=stopb.id)
+WHERE stopa.name='Craiglockhart' AND stopb.name = 'London Road'
+-------------------------------
+9.7.
+SELECT DISTINCT a.company, a.num
+FROM route a JOIN route b ON
+  (a.company=b.company AND a.num=b.num)
+WHERE a.stop=115 AND b.stop =137
+-------------------------------
+9.8.
+SELECT a.company, a.num
+FROM route a JOIN route b ON
+  (a.company=b.company AND a.num=b.num)
+  JOIN stops stopa ON (a.stop=stopa.id)
+  JOIN stops stopb ON (b.stop=stopb.id)
+WHERE stopa.name='Craiglockhart' AND stopb.name = 'Tollcross'
+-------------------------------
+9.9.
+SELECT DISTINCT stopb.name, b.company, b.num
+FROM route a
+JOIN route b ON (a.num = b.num AND a.company = b.company)
+JOIN stops stopa ON (a.stop = stopa.id)
+JOIN stops stopb ON (b.stop = stopb.id)
+WHERE stopa.name = 'Craiglockhart'
+-------------------------------
+9.10.
 -------------------------------
